@@ -151,6 +151,8 @@ activemq-data/
 
 # Environments
 .env
+service-account*.json
+*-credentials.json
 .envrc
 .venv
 env/
