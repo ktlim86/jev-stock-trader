@@ -1,0 +1,70 @@
+# Paper trading only. `run` never submits an order and never opens a trade context.
+universe:
+  index_symbol: HSI.HK # Longbridge constituent symbol, e.g. HSI.HK, HSTECH.HK, .DJI.US
+  max_tickers: null # null = every constituent the API returns
+
+datasets:
+  financial_report:
+    enabled: true
+    kind: All # All | IncomeStatement | BalanceSheet | CashFlow
+    period: Annual # Annual | SemiAnnual | Q1 | Q2 | Q3 | ThreeQ | QuarterlyFull
+  institution_rating:
+    enabled: true
+  forecast_eps:
+    enabled: true
+  valuation_comparison:
+    enabled: true
+    currency: HKD # USD, HKD, or CNY
+  shareholder:
+    enabled: true
+  insider_trades:
+    enabled: true # shareholder_top; Longbridge has no insider-trade feed
+  kline:
+    enabled: true
+    lookback_days: 365
+    forward_adjust: true
+    trade_sessions: intraday # intraday | all
+
+compact:
+  financial_periods: 5 # null keeps every reported year
+  shareholder_periods: 2
+  forecast_items: 6
+  valuation_history_points: 12 # null keeps the full peer history
+  weekly_closes: 26
+
+market:
+  # Longbridge allows about 60 historical kline requests per 30 seconds.
+  # 0.55s between calls keeps a full HSI pass under that cap. Use 0 to go flat out.
+  pause_seconds: 0.55
+
+typesafe:
+  model: jev-latest
+  endpoint: https://api.typesafe.ai/v1/systemone
+  api_key_env: TYPESAFE_API_KEY
+  max_tokens: 32000 # state + the choice question
+  price_per_million_tokens: 0.042
+  max_retries: 5
+  backoff_initial_seconds: 1.0
+  backoff_max_seconds: 32.0
+  timeout_seconds: 120
+  question:
+    instructions: >-
+      Given `state` for this stock, for a 3-4 month swing trade with max
+      30% drawdown tolerance, should we buy, hold or sell?
+    criteria:
+      buy: Fundamentals, analyst view and trend favour upside over 3-4 months
+      hold: Mixed or neutral evidence
+      sell: Deteriorating fundamentals/trend or downside risk dominates
+
+portfolio:
+  amount: 1000000 # in portfolio.currency; override with --portfolio-amount
+  currency: HKD
+  default_lot_size_hk: 100 # used only when static_info has no lot_size
+  default_lot_size: 1
+
+sheets:
+  enabled: true
+  spreadsheet_id_env: GOOGLE_SHEET_ID
+  credentials_env: GOOGLE_SERVICE_ACCOUNT_JSON
+  positions_tab: positions
+  probabilities_tab: jev_probabilities # set to null to skip the second tab

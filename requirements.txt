@@ -1,0 +1,7 @@
+longbridge>=4.4.3
+tiktoken>=0.7
+PyYAML>=6
+requests>=2.31
+gspread>=6.1
+google-auth>=2.0
+pytest>=8
